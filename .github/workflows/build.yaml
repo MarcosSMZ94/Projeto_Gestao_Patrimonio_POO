@@ -47,6 +47,7 @@ jobs:
     - name: Build
       run: |
         cd SistemaPatrimonio
+        mvn clean compile
         mvn clean package
 
     - name: Publish
