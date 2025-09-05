@@ -1,7 +1,9 @@
 package br.ufc.sistemapatrimonio.entities;
 
+import br.ufc.sistemapatrimonio.model.search.ItemBuscavel;
+
 // Representa um patrimônio dentro do sistema de patrimônio
-public class Patrimonio {
+public class Patrimonio implements ItemBuscavel {
     private int id; // Identificador único do patrimônio
     private String nome; // Nome do patrimônio
     private TipoPatrimonio tipo; // Tipo do patrimônio (por exemplo, imóvel, veículo, etc.)

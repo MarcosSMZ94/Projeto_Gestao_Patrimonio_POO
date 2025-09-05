@@ -1,7 +1,9 @@
 package br.ufc.sistemapatrimonio.entities;
 
+import br.ufc.sistemapatrimonio.model.search.ItemBuscavel;
+
 // Representa um bem dentro do sistema de patrimônio
-public class Bem {
+public class Bem implements ItemBuscavel {
     private int id; // Identificador único do bem
     private String nome; // Nome do bem
     private TipoBem tipo; // Tipo do bem (por exemplo, equipamento, veículo, etc.)

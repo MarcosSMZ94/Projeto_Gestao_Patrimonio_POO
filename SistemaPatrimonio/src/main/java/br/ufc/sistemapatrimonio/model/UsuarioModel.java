@@ -1,160 +1,80 @@
 package br.ufc.sistemapatrimonio.model;
 
-import br.ufc.sistemapatrimonio.entities.*;
-import br.ufc.sistemapatrimonio.enums.TipoReserva;
-import br.ufc.sistemapatrimonio.exceptions.BemException;
-import br.ufc.sistemapatrimonio.exceptions.ManutencaoException;
-import br.ufc.sistemapatrimonio.exceptions.PatrimonioException;
-import javafx.scene.control.Alert;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import br.ufc.sistemapatrimonio.entities.Bem;
+import br.ufc.sistemapatrimonio.entities.Local;
+import br.ufc.sistemapatrimonio.entities.Patrimonio;
+import br.ufc.sistemapatrimonio.entities.RequisicaoDeManutencao;
+import br.ufc.sistemapatrimonio.entities.RequisicaoDeReserva;
+import br.ufc.sistemapatrimonio.entities.Usuario;
+import br.ufc.sistemapatrimonio.enums.TipoReserva;
+import br.ufc.sistemapatrimonio.exceptions.BemException;
+import br.ufc.sistemapatrimonio.exceptions.ManutencaoException;
+import br.ufc.sistemapatrimonio.exceptions.PatrimonioException;
+import br.ufc.sistemapatrimonio.model.search.ItemBuscavel;
+import br.ufc.sistemapatrimonio.model.search.ItemSearchTemplate;
+import javafx.scene.control.Alert;
+
 public class UsuarioModel {
     private final Model model = new Model();
 
     public void adicionarRequisicao(int id, String nome, String local, String descricao, TipoReserva tipo) throws BemException, PatrimonioException, IOException {
-        if (tipo == TipoReserva.BEM) {
-            // Obter a lista de bens do sistema
-            List<Bem> bensSistema = Model.getBens();
-
-            Bem bemSelecionado = null;
-
-            // Verificar se o bem existe no sistema e se já está alocado.
-            for (Bem bem : bensSistema) {
-                if (bem.getId() == id) {
-                    if (bem.isAlocstatus()) {
-                        throw new BemException(BemException.EXISTENTE, "O bem com o ID " + id + " já foi alocado no sistema.");
-                    }
-                    bemSelecionado = bem;
-                    break;
-                }
-            }
-
-            // Caso o bem não seja encontrado no sistema
-            if (bemSelecionado == null) {
-                throw new BemException(BemException.NAO_ENCONTRADO, "O bem com o ID " + id + " não foi encontrado no sistema.");
-            }
-
-            // Verificar se o usuário já requisitou o bem
-            Usuario usuarioAutenticado = Model.getUsuarioAutenticado();
-            for (Bem bem : usuarioAutenticado.getMeusBens()) {
-                if (bem.getId() == id) {
-                    throw new BemException(BemException.EXISTENTE, "O bem com o ID " + id + " já foi requisitado por você.");
-                }
-            }
-
-            Local novoLocal = new Local(local);
-            bemSelecionado.setLocal(novoLocal);
-
-            // Atualizar o status de alocação do bem no sistema para true
-            bemSelecionado.setAlocstatus(true);
-
-            RequisicaoDeReserva requisicaoDeReserva = new RequisicaoDeReserva(bemSelecionado.getId(), nome, novoLocal, descricao, TipoReserva.BEM, Model.getUsuarioAutenticado().getUsername());
+        try {
+            ItemSearchTemplate searchTemplate = new ItemSearchTemplate(tipo);
+            ItemBuscavel itemEncontrado = searchTemplate.buscarEValidarItem(id, local);
+            
+            RequisicaoDeReserva requisicaoDeReserva = new RequisicaoDeReserva(
+                itemEncontrado.getId(), nome, new Local(local), descricao, tipo, 
+                Model.getUsuarioAutenticado().getUsername()
+            );
+            
             model.getrequisicaoDeReservas().add(requisicaoDeReserva);
             Model.getUsuarioAutenticado().getMinhasRequisicaoDeReservas().add(requisicaoDeReserva);
-
-            // Adicionar uma cópia do bem à lista de bens do usuário
-            Model.adicionarBem(bemSelecionado);
-
-        } else if (tipo == TipoReserva.PATRIMONIO) {
-            List<Patrimonio> patrimoniosSistema = Model.getPatrimonios();
-
-            Patrimonio patrimonioSelecionado = null;
-
-            // Verificar se o patrimonio existe no sistema e se já está alocado
-            for (Patrimonio patrimonio : patrimoniosSistema) {
-                if (patrimonio.getId() == id) {
-                    if (patrimonio.isAlocstatus()) {
-                        throw new PatrimonioException(PatrimonioException.EXISTENTE, "O patrimonio com o ID " + id + " já foi alocado no sistema.");
-                    }
-                    patrimonioSelecionado = patrimonio;
-                    break;
-                }
+            
+            if (tipo == TipoReserva.BEM) {
+                Model.adicionarBem((Bem) itemEncontrado);
+            } else if (tipo == TipoReserva.PATRIMONIO) {
+                Model.adicionarPatrimonio((Patrimonio) itemEncontrado);
             }
-
-            // Caso o patrimonio não seja encontrado no sistema
-            if (patrimonioSelecionado == null) {
-                throw new PatrimonioException(PatrimonioException.NAO_ENCONTRADO, "Patrimonio com o ID " + id + " não foi encontrado no sistema.");
+            
+        } catch (Exception e) {
+            if (e instanceof BemException) {
+                throw (BemException) e;
+            } else if (e instanceof PatrimonioException) {
+                throw (PatrimonioException) e;
+            } else {
+                throw new IOException("Erro inesperado: " + e.getMessage());
             }
-
-            // Verificar se o usuário já requisitou o patrimonio
-            Usuario usuarioAutenticado = Model.getUsuarioAutenticado();
-            for (Patrimonio patrimonio : usuarioAutenticado.getMeusPatrimonios()) {
-                if (patrimonio.getId() == id) {
-                    throw new PatrimonioException(PatrimonioException.EXISTENTE, "Patrimonio com o ID " + id + " já foi requisitado por você.");
-                }
-            }
-
-            Local novoLocal = new Local(local);
-            patrimonioSelecionado.setLocal(novoLocal);
-
-            // Atualizar o status de alocação do patrimonio no sistema para true
-            patrimonioSelecionado.setAlocstatus(true);
-
-            RequisicaoDeReserva requisicaoDeReserva = new RequisicaoDeReserva(patrimonioSelecionado.getId(), nome, novoLocal, descricao, TipoReserva.PATRIMONIO, Model.getUsuarioAutenticado().getUsername());
-            model.getrequisicaoDeReservas().add(requisicaoDeReserva);
-            Model.getUsuarioAutenticado().getMinhasRequisicaoDeReservas().add(requisicaoDeReserva);
-
-            // Adicionar uma cópia do bem à lista de patrimonios do usuário
-            Model.adicionarPatrimonio(patrimonioSelecionado);
-        } else {
-            throw new IOException("Algum erro ocorreu");
         }
     }
 
     public void removerRequisicao(int id, TipoReserva tipo) throws IOException, PatrimonioException, BemException {
-        Usuario usuarioAutenticado = Model.getUsuarioAutenticado();
-        //System.out.println(id + tipo.toString());
-        if (tipo == TipoReserva.BEM) {
-            // Remover o bem ou patrimônio
-            boolean itemRemovido = false;
-
-            // Remover bem
-            for (Bem bem : Model.getBens()) {
-                if (bem.getId() == id) {
-                    bem.setAlocstatus(false); // Atualizar o status de alocação para falso
-                    itemRemovido = true; // Marcar que um item foi removido
-                    break; // Sai do loop após remover o bem
+        try {
+            ItemSearchTemplate searchTemplate = new ItemSearchTemplate(tipo);
+            searchTemplate.removerItem(id);
+            
+            Usuario usuarioAutenticado = Model.getUsuarioAutenticado();
+            List<RequisicaoDeReserva> removidas = new ArrayList<>();
+            for (RequisicaoDeReserva requisicao : usuarioAutenticado.getMinhasRequisicaoDeReservas()) {
+                if (requisicao.getId() == id && requisicao.getTipoReserva() == tipo) {
+                    removidas.add(requisicao);
                 }
             }
-
-            if (!itemRemovido) {
-                throw new BemException(BemException.NAO_ENCONTRADO, "Bem com o ID " + id + " não encontrado.");
-            }
-
-        } else if (tipo == TipoReserva.PATRIMONIO) {
-            boolean itemRemovido = false;
-            // Remover patrimônio, caso o bem não tenha sido removido
-            for (Patrimonio patrimonio : Model.getPatrimonios()) {
-                System.out.println(patrimonio.getId());
-                if (patrimonio.getId() == id) {
-                    patrimonio.setAlocstatus(false); // Atualizar o status de alocação para falso
-                    itemRemovido = true; // Marcar que um item foi removido
-
-                    break; // Sai do loop após remover o patrimônio
-                }
-            }
-
-            // Se nenhum item foi removido, lançar uma exceção
-            if (!itemRemovido) {
-                throw new PatrimonioException(PatrimonioException.NAO_ENCONTRADO, "Patrimonio com o ID " + id + " não encontrado.");
-            }
-
-        } else {
-            throw new IOException("Um erro ocorreu");
-        }
-
-        List<RequisicaoDeReserva> removidas = new ArrayList<>();
-        for (RequisicaoDeReserva requisicao : usuarioAutenticado.getMinhasRequisicaoDeReservas()) {
-            if (requisicao.getId() == id && requisicao.getTipoReserva() == tipo) {
-                removidas.add(requisicao);
+            usuarioAutenticado.getMinhasRequisicaoDeReservas().removeAll(removidas);
+            
+        } catch (Exception e) {
+            if (e instanceof BemException) {
+                throw (BemException) e;
+            } else if (e instanceof PatrimonioException) {
+                throw (PatrimonioException) e;
+            } else {
+                throw new IOException("Erro inesperado: " + e.getMessage());
             }
         }
-        usuarioAutenticado.getMinhasRequisicaoDeReservas().removeAll(removidas);
-
     }
 
     public String listarReservasUsuario() {

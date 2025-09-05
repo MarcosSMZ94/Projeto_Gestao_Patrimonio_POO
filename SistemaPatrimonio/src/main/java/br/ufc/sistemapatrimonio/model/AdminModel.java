@@ -1,15 +1,20 @@
 package br.ufc.sistemapatrimonio.model;
 
-import br.ufc.sistemapatrimonio.entities.*;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
+
+import br.ufc.sistemapatrimonio.entities.Bem;
+import br.ufc.sistemapatrimonio.entities.Patrimonio;
+import br.ufc.sistemapatrimonio.entities.RequisicaoDeManutencao;
+import br.ufc.sistemapatrimonio.entities.RequisicaoDeReserva;
+import br.ufc.sistemapatrimonio.entities.TipoBem;
+import br.ufc.sistemapatrimonio.entities.TipoPatrimonio;
+import br.ufc.sistemapatrimonio.entities.Usuario;
 import br.ufc.sistemapatrimonio.enums.TipoReserva;
 import br.ufc.sistemapatrimonio.exceptions.BemException;
 import br.ufc.sistemapatrimonio.exceptions.PatrimonioException;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class AdminModel extends UsuarioModel {
 
