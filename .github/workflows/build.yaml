@@ -36,12 +36,12 @@ jobs:
 
     - name: Create warp-packer directory
       run: |
-       mkdir tools
+       mkdir /SistemaPatrimonio/tools
 
     - name: Set up warp-packer
       run: |
         [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
-        Invoke-WebRequest https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe -OutFile tools/warp-packer.exe
+        Invoke-WebRequest https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe -OutFile SistemaPatrimonio/tools/warp-packer.exe
       shell: pwsh
 
     - name: Build
