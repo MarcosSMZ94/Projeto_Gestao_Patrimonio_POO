@@ -56,7 +56,9 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: SistemaPatrimonio/target/SistemaPatrimonio.exe
         asset_name: SistemaPatrimonio
-        tag: ${{ github.ref }}
+        tag: v1.0.0
+        release_name: Sistema Patrimônio 
+        make_latest: true
         body: |
           ## Changelog
           - Initial release
