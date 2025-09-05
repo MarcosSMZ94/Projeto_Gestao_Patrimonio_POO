@@ -39,7 +39,9 @@ jobs:
       shell: pwsh
 
     - name: Build
-      run: mvn clean package
+      run: |
+        cd SistemaPatrimonio
+        mvn clean package
 
     - name: Publish
       if: ${{ github.event.inputs.release == 'true' }}
